@@ -1,13 +1,12 @@
 // ─────────────────────────────────────────────
 // Flow — App Shell
-// v1.1.0 — 2026-03-16 (BRT)
+// v1.0.0 — 2026-03-16 (BRT)
 // ─────────────────────────────────────────────
 
 import { useState } from 'react'
 import { useFlowStore, useActiveProject } from '@/store'
 import { BacklogView } from '@/components/backlog/BacklogView'
 import { BoardView }   from '@/components/board/BoardView'
-import { GmudView }    from '@/components/gmud/GmudView'
 import styles from './App.module.css'
 
 type Tab = 'backlog' | 'board' | 'gmud'
@@ -71,7 +70,9 @@ export function App() {
               <BoardView projectId={activeProject.id} />
             )}
             {tab === 'gmud' && (
-              <GmudView projectId={activeProject.id} />
+              <div className={styles.placeholder}>
+                <span>Aba GMud — em construção</span>
+              </div>
             )}
           </>
         )}

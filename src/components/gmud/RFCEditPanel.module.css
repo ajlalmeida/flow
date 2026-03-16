@@ -1,0 +1,102 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.req { color: var(--c-red); }
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: .9rem;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  outline: none;
+  resize: vertical;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-500) 15%, transparent);
+}
+
+.typeGroup {
+  display: flex;
+  gap: 6px;
+}
+
+.typeBtn {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 7px 4px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.typeBtn:hover { background: var(--surface-2); color: var(--text-primary); }
+.typeBtnActive {
+  background: var(--brand-50);
+  color: var(--brand-600);
+  border-color: var(--brand-400);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.btnCancel {
+  font-family: var(--font-sans);
+  font-size: .85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btnCancel:hover { background: var(--surface-2); }
+
+.btnSave {
+  font-family: var(--font-sans);
+  font-size: .85rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand-500);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 7px 20px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btnSave:hover { background: var(--brand-600); }
