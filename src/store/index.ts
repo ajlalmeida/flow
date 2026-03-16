@@ -66,6 +66,9 @@ interface FlowActions {
   exportData: () => string
   importData: (json: string) => void
   resetToSeed: () => void
+
+   // Internal
+  _log: (entityId: string, entityType: 'card' | 'rfc', action: string) => void
 }
 
 // ── Store ────────────────────────────────────
