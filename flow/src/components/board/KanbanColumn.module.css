@@ -1,0 +1,145 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 272px;
+  max-width: 272px;
+  flex-shrink: 0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px 6px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.name {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.count {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-radius: 99px;
+  padding: 1px 7px;
+  transition: background .2s, color .2s;
+}
+
+.countAt {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.countOver {
+  background: #fee2e2;
+  color: #991b1b;
+  animation: pulse .8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 1; }
+  to   { opacity: .65; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .countAt   { background: #451a03; color: #fcd34d; }
+  .countOver { background: #450a0a; color: #fca5a5; }
+}
+
+.donePill {
+  font-size: .62rem;
+  font-weight: 700;
+  color: #059669;
+  background: #d1fae5;
+  border-radius: 99px;
+  padding: 1px 7px;
+  letter-spacing: .02em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .donePill { background: #022c22; color: #34d399; }
+}
+
+.addBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed var(--border-md);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.addBtn:hover {
+  background: var(--brand-50);
+  color: var(--brand-600);
+  border-color: var(--brand-400);
+}
+
+/* WIP warning banner */
+.wipWarning {
+  font-size: .72rem;
+  font-weight: 600;
+  color: #991b1b;
+  background: #fee2e2;
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .wipWarning { background: #450a0a; color: #fca5a5; }
+}
+
+/* Card list / drop zone */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 80px;
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  transition: background .15s;
+  flex: 1;
+}
+
+.isOver {
+  background: var(--brand-50);
+  outline: 2px dashed var(--brand-400);
+  outline-offset: -2px;
+}
+
+.emptySlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-lg);
+  font-size: .75rem;
+  color: var(--text-muted);
+  transition: border-color .15s, color .15s;
+}
+
+.isOver .emptySlot {
+  border-color: var(--brand-400);
+  color: var(--brand-500);
+}
