@@ -1,0 +1,155 @@
+/* ─────────────────────────────────────────────
+   Flow — Design Tokens & Global Styles
+   v1.0.0 — 2026-03-16 (BRT)
+   ───────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Tokens ──────────────────────────────────── */
+:root {
+  /* Brand */
+  --brand-50:  #eef2ff;
+  --brand-100: #e0e7ff;
+  --brand-400: #818cf8;
+  --brand-500: #6366f1;
+  --brand-600: #4f46e5;
+  --brand-900: #1e1b4b;
+
+  /* Neutrals */
+  --gray-0:   #ffffff;
+  --gray-50:  #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Semantic */
+  --c-red:    #ef4444;
+  --c-amber:  #f59e0b;
+  --c-green:  #22c55e;
+  --c-blue:   #3b82f6;
+  --c-indigo: #6366f1;
+
+  /* Surface */
+  --surface-0: var(--gray-0);
+  --surface-1: var(--gray-50);
+  --surface-2: var(--gray-100);
+  --border:    var(--gray-200);
+  --border-md: var(--gray-300);
+
+  /* Text */
+  --text-primary:   var(--gray-900);
+  --text-secondary: var(--gray-500);
+  --text-muted:     var(--gray-400);
+
+  /* Typography */
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* Spacing */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / .05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / .07), 0 2px 4px -2px rgb(0 0 0 / .05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / .07), 0 4px 6px -4px rgb(0 0 0 / .05);
+
+  /* Layout */
+  --topbar-h: 52px;
+  --sidebar-w: 220px;
+}
+
+/* ── Dark mode ───────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-0: #0f1117;
+    --surface-1: #161b25;
+    --surface-2: #1e2533;
+    --border:    #2a3344;
+    --border-md: #364054;
+
+    --text-primary:   #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted:     #64748b;
+
+    --brand-50:  #1e1b4b;
+    --brand-100: #312e81;
+    --brand-400: #a5b4fc;
+    --brand-500: #818cf8;
+  }
+}
+
+/* ── Reset ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#root { height: 100dvh; display: flex; flex-direction: column; }
+
+/* ── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 99px; }
+
+/* ── Typography ──────────────────────────────── */
+h1 { font-size: 1.5rem;  font-weight: 600; line-height: 1.3; }
+h2 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; }
+h3 { font-size: 1rem;    font-weight: 600; line-height: 1.4; }
+p  { line-height: 1.6; }
+
+/* ── Utilities ───────────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+}
+
+/* ── MoSCoW badges ───────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: .7rem; font-weight: 600; letter-spacing: .03em;
+  white-space: nowrap;
+}
+.badge-M  { background: #fee2e2; color: #991b1b; }
+.badge-S  { background: #fef3c7; color: #92400e; }
+.badge-C  { background: #dbeafe; color: #1e40af; }
+.badge-W  { background: var(--gray-200); color: var(--gray-600); }
+
+@media (prefers-color-scheme: dark) {
+  .badge-M  { background: #450a0a; color: #fca5a5; }
+  .badge-S  { background: #451a03; color: #fcd34d; }
+  .badge-C  { background: #172554; color: #93c5fd; }
+  .badge-W  { background: #1e2533; color: #9ca3af; }
+}
+
+/* ── RFC Status badges ───────────────────────── */
+.badge-Planejada   { background: #f1f5f9; color: #475569; }
+.badge-Aprovada    { background: #dbeafe; color: #1e40af; }
+.badge-Executando  { background: #fef3c7; color: #92400e; }
+.badge-Concluída   { background: #dcfce7; color: #166534; }
+.badge-Falhou      { background: #fee2e2; color: #991b1b; }
+
+@media (prefers-color-scheme: dark) {
+  .badge-Planejada   { background: #1e2533; color: #94a3b8; }
+  .badge-Aprovada    { background: #172554; color: #93c5fd; }
+  .badge-Executando  { background: #451a03; color: #fcd34d; }
+  .badge-Concluída   { background: #052e16; color: #86efac; }
+  .badge-Falhou      { background: #450a0a; color: #fca5a5; }
+}
