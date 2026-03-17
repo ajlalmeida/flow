@@ -1,23 +1,45 @@
 // ─────────────────────────────────────────────
-// Flow — App Shell
-// v1.1.0 — 2026-03-16 (BRT)
+// Flow — App Shell v2.0 (multi-user)
 // ─────────────────────────────────────────────
-
-import { useState } from 'react'
-import { useFlowStore, useActiveProject } from '@/store'
-import { BacklogView } from '@/components/backlog/BacklogView'
-import { BoardView }   from '@/components/board/BoardView'
-import { GmudView }    from '@/components/gmud/GmudView'
+import { useState, useEffect } from 'react'
+import { useAuthStore }  from '@/store/auth'
+import { useOrgStore, useActiveTeam, useActiveProject, useTeamProjects } from '@/store/org'
+import { AuthPage }       from '@/components/auth/AuthPage'
+import { BacklogView }    from '@/components/backlog/BacklogView'
+import { BoardView }      from '@/components/board/BoardView'
+import { GmudView }       from '@/components/gmud/GmudView'
+import { SettingsPanel }  from '@/components/settings/SettingsPanel'
 import styles from './App.module.css'
 
 type Tab = 'backlog' | 'board' | 'gmud'
 
 export function App() {
-  const [tab, setTab] = useState<Tab>('backlog')
-  const projects      = useFlowStore(s => s.projects)
-  const activeId      = useFlowStore(s => s.activeProjectId)
-  const setActive     = useFlowStore(s => s.setActiveProject)
+  const { session, loading: authLoading, init, signOut } = useAuthStore()
+  const { loadUserData, activeTeamId, activeProjectId, teams, setActiveTeam, setActiveProject, loading: orgLoading } = useOrgStore()
+  const activeTeam    = useActiveTeam()
   const activeProject = useActiveProject()
+  const teamProjects  = useTeamProjects(activeTeamId ?? '')
+
+  const [tab,          setTab]          = useState<Tab>('backlog')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
+  // Init auth once
+  useEffect(() => { init() }, [])
+
+  // Load org data when session is ready
+  useEffect(() => {
+    if (session) loadUserData()
+  }, [session?.user?.id])
+
+  if (authLoading) {
+    return (
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100dvh', color:'var(--text-muted)', fontSize:'.9rem' }}>
+        Carregando…
+      </div>
+    )
+  }
+
+  if (!session) return <AuthPage />
 
   return (
     <div className={styles.shell}>
@@ -26,16 +48,29 @@ export function App() {
         <div className={styles.brand}>
           <span className={styles.logo}>Flow</span>
 
+          {/* Team selector */}
+          {teams.length > 0 && (
+            <select
+              className={styles.projectSelect}
+              value={activeTeamId ?? ''}
+              onChange={e => setActiveTeam(e.target.value)}
+              title="Time ativo"
+            >
+              {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          )}
+
           {/* Project selector */}
-          <select
-            className={styles.projectSelect}
-            value={activeId ?? ''}
-            onChange={e => setActive(e.target.value)}
-          >
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+          {teamProjects.length > 0 && (
+            <select
+              className={styles.projectSelect}
+              value={activeProjectId ?? ''}
+              onChange={e => setActiveProject(e.target.value)}
+              title="Projeto ativo"
+            >
+              {teamProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
         </div>
 
         {/* Tab nav */}
@@ -51,31 +86,45 @@ export function App() {
           ))}
         </nav>
 
+        {/* Right: settings + user */}
         <div className={styles.topbarRight}>
-          <span className={styles.projectName}>{activeProject?.name}</span>
+          <button className={styles.iconTopBtn} onClick={() => setSettingsOpen(true)} title="Configurações">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 10a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M13.3 8a5.3 5.3 0 00-.1-.9l1.4-1.1-1.3-2.3-1.7.7A5.3 5.3 0 009.1 3.6L8.7 2h-1.4l-.4 1.6A5.3 5.3 0 004.4 4.4l-1.7-.7L1.4 6l1.4 1.1c-.1.3-.1.6-.1.9s0 .6.1.9L1.4 10l1.3 2.3 1.7-.7c.5.4 1 .7 1.5.9l.4 1.5h1.4l.4-1.5c.6-.2 1.1-.5 1.5-.9l1.7.7 1.3-2.3-1.4-1.1c.1-.3.1-.6.1-.9z" stroke="currentColor" strokeWidth="1.3"/>
+            </svg>
+          </button>
+          <button className={styles.signOutBtn} onClick={signOut} title="Sair">
+            Sair
+          </button>
         </div>
       </header>
 
       {/* ── Content ── */}
       <main className={styles.main}>
-        {!activeProject ? (
+        {orgLoading ? (
+          <div className={styles.empty}><p>Carregando projetos…</p></div>
+        ) : !activeProject ? (
           <div className={styles.empty}>
             <p>Nenhum projeto selecionado.</p>
+            <button
+              style={{ marginTop: 12, fontSize: '.85rem', color: 'var(--brand-500)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 600 }}
+              onClick={() => setSettingsOpen(true)}
+            >
+              + Criar time e projeto nas configurações
+            </button>
           </div>
         ) : (
           <>
-            {tab === 'backlog' && (
-              <BacklogView projectId={activeProject.id} />
-            )}
-            {tab === 'board' && (
-              <BoardView projectId={activeProject.id} />
-            )}
-            {tab === 'gmud' && (
-              <GmudView projectId={activeProject.id} />
-            )}
+            {tab === 'backlog' && <BacklogView projectId={activeProject.id} />}
+            {tab === 'board'   && <BoardView   projectId={activeProject.id} />}
+            {tab === 'gmud'    && <GmudView    projectId={activeProject.id} />}
           </>
         )}
       </main>
+
+      {/* Settings panel */}
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }
