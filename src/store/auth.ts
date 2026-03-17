@@ -51,20 +51,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   async signUpEmail(email, password, name) {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } },
-    })
-    return error?.message ?? null
-  },
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: name },
+      emailRedirectTo: `${window.location.origin}/flow/`,
+    },
+  })
+  return error?.message ?? null
+},
 
   async signInGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    })
-  },
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/flow/`,
+    },
+  })
+},
 
   async signOut() {
     await supabase.auth.signOut()
