@@ -30,3 +30,16 @@ Thumbs.db
 /flow/src/App.module.css.bak
 /flow/src/App.module.css.bak
 /flow/src/App.tsx.bak
+/package-lock.json.bak
+/package.json.bak
+/src/App.module.css.bak
+/.env.local
+/flow/.env.local
+/.gitignore
+/src/App.tsx.bak
+/src/components/settings/SettingsPanel.tsx.bak
+/src/lib/supabase.ts.bak
+/src/store/flow.ts.bak
+/src/store/auth.ts.bak
+/tsconfig.json.bak
+"env.local" 
