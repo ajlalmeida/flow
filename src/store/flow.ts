@@ -115,7 +115,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     const order = get().columns.filter(c => c.projectId === projectId && c.phase === phase).length
     const { data, error } = await supabase
       .from('columns')
-      .insert({ project_id: projectId, phase, name, order, wip_limit: wipLimit ?? null })
+      .insert({ project_id: projectId, phase, name, order, wip_limit: wipLimit ?? null } as Record<string,unknown>)
       .select()
       .single()
     if (error || !data) throw error
@@ -131,7 +131,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     if (patch.isDiscoveryExit  !== undefined) dbPatch.is_discovery_exit  = patch.isDiscoveryExit
 
     const { data, error } = await supabase
-      .from('columns').update(dbPatch).eq('id', id).select().single()
+      .from('columns').update(dbPatch as Record<string,unknown>).eq('id', id).select().single()
     if (error || !data) throw error
     const col = mapColumn(data as any)
     set(s => ({ columns: s.columns.map(c => c.id === id ? col : c) }))
@@ -149,7 +149,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     // Persist each updated order
     await Promise.all(
       orderedIds.map((id, idx) =>
-        supabase.from('columns').update({ order: idx }).eq('id', id)
+        supabase.from('columns').update({ order: idx } as Record<string,unknown>).eq('id', id)
       )
     )
   },
@@ -183,7 +183,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
         order,
         tags:        opts.tags        ?? [],
         created_by:  user.id,
-      })
+      } as Record<string,unknown>)
       .select()
       .single()
     if (error || !data) throw error
@@ -206,7 +206,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     if (patch.order       !== undefined) dbPatch.order       = patch.order
 
     const { data, error } = await supabase
-      .from('cards').update(dbPatch).eq('id', id).select().single()
+      .from('cards').update(dbPatch as Record<string,unknown>).eq('id', id).select().single()
     if (error || !data) throw error
     const card = mapCard(data as any)
     set(s => ({ cards: s.cards.map(c => c.id === id ? card : c) }))
@@ -223,14 +223,14 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     }))
     await supabase
       .from('cards')
-      .update({ column_id: targetColumnId, order: targetOrder, updated_at: new Date().toISOString() })
+      .update({ column_id: targetColumnId, order: targetOrder, updated_at: new Date().toISOString() } as Record<string,unknown>)
       .eq('id', id)
   },
 
   async promoteToDelivery(cardId, targetColumnId) {
     const { data, error } = await supabase
       .from('cards')
-      .update({ phase: 'delivery', column_id: targetColumnId, updated_at: new Date().toISOString() })
+      .update({ phase: 'delivery', column_id: targetColumnId, updated_at: new Date().toISOString() } as Record<string,unknown>)
       .eq('id', cardId)
       .select()
       .single()
@@ -260,7 +260,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     }))
     await Promise.all(
       orderedIds.map((id, idx) =>
-        supabase.from('cards').update({ order: idx }).eq('id', id)
+        supabase.from('cards').update({ order: idx } as Record<string,unknown>).eq('id', id)
       )
     )
   },
@@ -283,7 +283,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
         rollback_plan: opts.rollbackPlan ?? '',
         scheduled_at: scheduledAt,
         created_by:   user.id,
-      })
+      } as Record<string,unknown>)
       .select()
       .single()
     if (error || !data) throw error
@@ -303,7 +303,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
     if (patch.scheduledAt  !== undefined) dbPatch.scheduled_at  = patch.scheduledAt
 
     const { data, error } = await supabase
-      .from('rfcs').update(dbPatch).eq('id', id).select().single()
+      .from('rfcs').update(dbPatch as Record<string,unknown>).eq('id', id).select().single()
     if (error || !data) throw error
     const rfc = mapRFC(data as any)
     set(s => ({ rfcs: s.rfcs.map(r => r.id === id ? rfc : r) }))
@@ -314,7 +314,7 @@ export const useFlowStore = create<FlowState & FlowActions>()((set, get) => ({
   async setRFCStatus(id, status) {
     const { data, error } = await supabase
       .from('rfcs')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({ status, updated_at: new Date().toISOString() } as Record<string,unknown>)
       .eq('id', id)
       .select()
       .single()
@@ -352,7 +352,7 @@ async function _log(
   if (!projectId) return
   const { data } = await supabase
     .from('activity_logs')
-    .insert({ project_id: projectId, entity_id: entityId, entity_type: entityType, action, actor_id: actorId ?? null })
+    .insert({ project_id: projectId, entity_id: entityId, entity_type: entityType, action, actor_id: actorId ?? null } as Record<string,unknown>)
     .select()
     .single()
   if (!data) return

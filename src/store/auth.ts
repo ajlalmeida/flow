@@ -12,7 +12,6 @@ interface AuthState {
   profile:  Profile | null
   loading:  boolean
 
-  // Actions
   init:          () => Promise<void>
   signInEmail:   (email: string, password: string) => Promise<string | null>
   signUpEmail:   (email: string, password: string, name: string) => Promise<string | null>
@@ -28,7 +27,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: true,
 
   async init() {
-    // Carrega sessão persistida
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
       const profile = await fetchProfile(session.user.id)
@@ -37,7 +35,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false })
     }
 
-    // Escuta mudanças de auth
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const profile = await fetchProfile(session.user.id)
@@ -79,11 +76,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!user) return
     const { data } = await supabase
       .from('profiles')
-      .update({ ...patch, updated_at: new Date().toISOString() })
+      .update({ ...patch, updated_at: new Date().toISOString() } as Record<string, unknown>)
       .eq('id', user.id)
       .select()
       .single()
-    if (data) set({ profile: data as Profile })
+    if (data) set({ profile: data as unknown as Profile })
   },
 }))
 
@@ -93,5 +90,5 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
     .select('*')
     .eq('id', userId)
     .single()
-  return (data as Profile) ?? null
+  return data ? (data as unknown as Profile) : null
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useOrgStore, useTeamProjects } from '@/store/org'
-import type { Team, Project } from '@/lib/database.types'
 import { useAuthStore } from '@/store/auth'
 import { SlidePanel } from '@/components/ui/SlidePanel'
 import type { TeamRole, ProjectRole, TeamMember, ProjectMember, Invite } from '@/lib/database.types'
@@ -30,8 +29,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
     setActiveTeam, setActiveProject,
   } = useOrgStore()
 
-  const activeTeam    = useActiveTeam()
-  const activeProject = useActiveProject()
+  const activeTeam    = teams.find(t => t.id === activeTeamId) ?? null
+  const activeProject = projects.find(p => p.id === activeProjectId) ?? null
   const teamProjects  = useTeamProjects(activeTeamId ?? '')
   const profile       = useAuthStore(s => s.profile)
   const updateProfile = useAuthStore(s => s.updateProfile)
@@ -283,7 +282,7 @@ function MemberList({ members, roles, onUpdate, onRemove }: MemberListProps) {
   if (members.length === 0) return <p className={styles.empty}>Nenhum membro.</p>
   return (
     <ul className={styles.memberList}>
-      {members.map((m: TeamMember & ProjectMember) => (
+      {(members as (TeamMember & ProjectMember)[]).map((m) => (
         <li key={m.id} className={styles.memberItem}>
           <div className={styles.memberInfo}>
             <div className={styles.avatar}>{(m.profile?.name ?? '?')[0].toUpperCase()}</div>
