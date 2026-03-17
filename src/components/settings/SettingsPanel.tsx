@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useOrgStore, useActiveTeam, useActiveProject, useTeamProjects } from '@/store/org'
+import { useOrgStore, useTeamProjects } from '@/store/org'
+import type { Team, Project } from '@/lib/database.types'
 import { useAuthStore } from '@/store/auth'
 import { SlidePanel } from '@/components/ui/SlidePanel'
 import type { TeamRole, ProjectRole, TeamMember, ProjectMember, Invite } from '@/lib/database.types'
@@ -133,6 +134,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
 // ── Sub-components ─────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function TeamsTab({ teams, activeTeamId, onSelect, onCreate, onUpdate, onDelete }: any) {
   const [newName,  setNewName]  = useState('')
   const [editId,   setEditId]   = useState<string | null>(null)
@@ -176,6 +178,7 @@ function TeamsTab({ teams, activeTeamId, onSelect, onCreate, onUpdate, onDelete 
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ProjectsTab({ projects, activeProjectId, activeTeamId, onSelect, onCreate, onUpdate, onDelete }: any) {
   const [newName,  setNewName]  = useState('')
   const [newDesc,  setNewDesc]  = useState('')
@@ -224,30 +227,63 @@ function ProjectsTab({ projects, activeProjectId, activeTeamId, onSelect, onCrea
   )
 }
 
-function MembersTab({ teamMembers, projectMembers, activeTeam, activeProject, onUpdateTeamMember, onRemoveTeamMember, onUpdateProjectMember, onRemoveProjectMember }: any) {
+interface MembersTabProps {
+  teamMembers:           TeamMember[]
+  projectMembers:        ProjectMember[]
+  activeTeam?:           string
+  activeProject?:        string
+  onUpdateTeamMember:    (uid: string, role: TeamRole) => void
+  onRemoveTeamMember:    (uid: string) => void
+  onUpdateProjectMember: (uid: string, role: ProjectRole) => void
+  onRemoveProjectMember: (uid: string) => void
+}
+
+function MembersTab({
+  teamMembers, projectMembers,
+  activeTeam, activeProject,
+  onUpdateTeamMember, onRemoveTeamMember,
+  onUpdateProjectMember, onRemoveProjectMember,
+}: MembersTabProps) {
   return (
     <div className={styles.section}>
       {activeTeam && (
         <>
           <p className={styles.groupLabel}>Time: {activeTeam}</p>
-          <MemberList members={teamMembers} roles={TEAM_ROLES} onUpdate={onUpdateTeamMember} onRemove={onRemoveTeamMember} />
+          <MemberList
+            members={teamMembers}
+            roles={TEAM_ROLES}
+            onUpdate={(uid, role) => onUpdateTeamMember(uid, role as TeamRole)}
+            onRemove={onRemoveTeamMember}
+          />
         </>
       )}
       {activeProject && (
         <>
           <p className={styles.groupLabel} style={{ marginTop: 20 }}>Projeto: {activeProject}</p>
-          <MemberList members={projectMembers} roles={PROJECT_ROLES} onUpdate={onUpdateProjectMember} onRemove={onRemoveProjectMember} />
+          <MemberList
+            members={projectMembers}
+            roles={PROJECT_ROLES}
+            onUpdate={(uid, role) => onUpdateProjectMember(uid, role as ProjectRole)}
+            onRemove={onRemoveProjectMember}
+          />
         </>
       )}
     </div>
   )
 }
 
-function MemberList({ members, roles, onUpdate, onRemove }: { members: (TeamMember | ProjectMember)[], roles: string[], onUpdate: any, onRemove: any }) {
+interface MemberListProps {
+  members:  (TeamMember | ProjectMember)[]
+  roles:    string[]
+  onUpdate: (uid: string, role: string) => void
+  onRemove: (uid: string) => void
+}
+
+function MemberList({ members, roles, onUpdate, onRemove }: MemberListProps) {
   if (members.length === 0) return <p className={styles.empty}>Nenhum membro.</p>
   return (
     <ul className={styles.memberList}>
-      {members.map((m: any) => (
+      {members.map((m: TeamMember & ProjectMember) => (
         <li key={m.id} className={styles.memberItem}>
           <div className={styles.memberInfo}>
             <div className={styles.avatar}>{(m.profile?.name ?? '?')[0].toUpperCase()}</div>
@@ -272,6 +308,7 @@ function MemberList({ members, roles, onUpdate, onRemove }: { members: (TeamMemb
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function InvitesTab({ invites, activeTeamId, activeProjectId, onSend, onRevoke }: any) {
   const [email,  setEmail]  = useState('')
   const [role,   setRole]   = useState('member')
@@ -329,6 +366,7 @@ function InvitesTab({ invites, activeTeamId, activeProjectId, onSend, onRevoke }
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ProfileTab({ profile, onUpdate }: any) {
   const [name, setName] = useState(profile?.name ?? '')
   const [saved, setSaved] = useState(false)
