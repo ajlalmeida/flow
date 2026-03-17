@@ -16,7 +16,8 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "date-fns": "^3.6.0",
-    "clsx": "^2.1.1"
+    "clsx": "^2.1.1",
+    "@supabase/supabase-js": "^2.44.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

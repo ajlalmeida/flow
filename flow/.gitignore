@@ -26,3 +26,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .env.local
+/flow/src/store/index.ts.bak
+/src/store/index.ts.bak
+/flow/src/App.module.css.bak
+/flow/src/App.module.css.bak
+/flow/src/App.tsx.bak

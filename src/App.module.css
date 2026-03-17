@@ -116,3 +116,21 @@
   color: var(--text-muted);
   font-size: .9rem;
 }
+
+/* ── Icon top bar buttons ── */
+.iconTopBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.iconTopBtn:hover { background: var(--surface-2); color: var(--text-primary); }
+
+.signOutBtn {
+  font-family: var(--font-sans); font-size: .75rem; font-weight: 500;
+  color: var(--text-secondary); background: transparent;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 4px 10px; cursor: pointer; transition: background .15s;
+}
+.signOutBtn:hover { background: var(--surface-2); }
