@@ -9,7 +9,8 @@ import { AuthPage }      from '@/components/auth/AuthPage'
 import { BacklogView }   from '@/components/backlog/BacklogView'
 import { BoardView }     from '@/components/board/BoardView'
 import { GmudView }      from '@/components/gmud/GmudView'
-import { SettingsPanel } from '@/components/settings/SettingsPanel'
+import { SettingsPanel }      from '@/components/settings/SettingsPanel'
+import { ExportImportPanel }  from '@/components/ui/ExportImportPanel'
 import type { Team, Project } from '@/lib/database.types'
 import styles from './App.module.css'
 
@@ -38,7 +39,8 @@ export function App() {
   const activeProject = projects.find((p: Project) => p.id === activeProjectId) ?? null
 
   const [tab,          setTab]          = useState<Tab>('backlog')
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsOpen,      setSettingsOpen]      = useState(false)
+  const [exportImportOpen, setExportImportOpen] = useState(false)
 
   useEffect(() => { init() }, [])
 
@@ -106,6 +108,11 @@ export function App() {
         </nav>
 
         <div className={styles.topbarRight}>
+          <button className={styles.iconTopBtn} onClick={() => setExportImportOpen(true)} title="Export / Import" disabled={!activeProject}>
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M7.5 1v9M4.5 7l3 3 3-3M2 11v2a1 1 0 001 1h9a1 1 0 001-1v-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           <button className={styles.iconTopBtn} onClick={() => setSettingsOpen(true)} title="Configurações">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 10a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" strokeWidth="1.3"/>
@@ -139,6 +146,14 @@ export function App() {
       </main>
 
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      {activeProject && (
+        <ExportImportPanel
+          open={exportImportOpen}
+          onClose={() => setExportImportOpen(false)}
+          projectId={activeProject.id}
+          projectName={activeProject.name}
+        />
+      )}
     </div>
   )
 }
