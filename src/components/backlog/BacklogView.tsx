@@ -4,7 +4,8 @@ import type { Card } from '@/types'
 import { SlidePanel }   from '@/components/ui/SlidePanel'
 import { BacklogCard }  from './BacklogCard'
 import { CardForm, type CardFormData } from './CardForm'
-import { PromoteModal } from './PromoteModal'
+import { PromoteModal }  from './PromoteModal'
+import { ColumnsPanel }  from '@/components/ui/ColumnsPanel'
 import styles from './BacklogView.module.css'
 
 interface BacklogViewProps {
@@ -91,6 +92,9 @@ export function BacklogView({ projectId }: BacklogViewProps) {
     promoteToDelivery(cardId, targetColId)
   }
 
+  // ── Columns panel ──
+  const [colsPanelOpen, setColsPanelOpen] = useState(false)
+
   // ── Delete ──
   function handleDelete(id: string) {
     if (confirm('Excluir este card?')) deleteCard(id)
@@ -136,9 +140,23 @@ export function BacklogView({ projectId }: BacklogViewProps) {
           )}
         </div>
 
-        <button className={styles.addBtn} onClick={() => openCreate(discoveryColumns[0]?.id ?? '')}>
-          + Novo card
-        </button>
+        <div style={{ display:'flex', gap:'8px' }}>
+          <button
+            className={styles.addBtn}
+            style={{ background:'transparent', color:'var(--text-secondary)', border:'1px solid var(--border)' }}
+            onClick={() => setColsPanelOpen(true)}
+            title="Gerenciar colunas"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{marginRight:4,verticalAlign:'middle'}}>
+              <path d="M7 9a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M11.7 7a4.8 4.8 0 00-.1-.8l1.2-.9-1.1-2-1.5.6a4.5 4.5 0 00-1.4-.8L8.6 2H5.4l-.3 1.1a4.5 4.5 0 00-1.4.8l-1.5-.6-1.1 2 1.2.9A4.8 4.8 0 002.3 7c0 .3 0 .5.1.8l-1.2.9 1.1 2 1.5-.6c.4.3.9.6 1.4.8L5.4 12h3.2l.3-1.1c.5-.2 1-.5 1.4-.8l1.5.6 1.1-2-1.2-.9c.1-.3.1-.5.1-.8z" stroke="currentColor" strokeWidth="1.2"/>
+            </svg>
+            Colunas
+          </button>
+          <button className={styles.addBtn} onClick={() => openCreate(discoveryColumns[0]?.id ?? '')}>
+            + Novo card
+          </button>
+        </div>
       </div>
 
       {/* ── Stats bar ── */}
@@ -211,6 +229,14 @@ export function BacklogView({ projectId }: BacklogViewProps) {
           submitLabel={editingCard ? 'Salvar alterações' : 'Criar card'}
         />
       </SlidePanel>
+
+      {/* ── Columns Panel ── */}
+      <ColumnsPanel
+        open={colsPanelOpen}
+        onClose={() => setColsPanelOpen(false)}
+        projectId={projectId}
+        phase="discovery"
+      />
 
       {/* ── Promote Modal ── */}
       <PromoteModal

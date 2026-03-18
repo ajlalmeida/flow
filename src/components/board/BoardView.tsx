@@ -19,6 +19,7 @@ import { CardForm, type CardFormData } from '@/components/backlog/CardForm'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCard }   from './KanbanCard'
 import { RFCForm, type RFCFormData } from './RFCForm'
+import { ColumnsPanel }              from '@/components/ui/ColumnsPanel'
 import styles from './BoardView.module.css'
 
 interface BoardViewProps {
@@ -144,6 +145,9 @@ export function BoardView({ projectId }: BoardViewProps) {
     setRfcPanel(false)
   }
 
+  // ── Columns panel ──────────────────────────
+  const [colsPanelOpen, setColsPanelOpen] = useState(false)
+
   // ── Add column ──────────────────────────────
   const [newColName, setNewColName] = useState('')
   const [colForm,    setColForm]    = useState(false)
@@ -160,7 +164,18 @@ export function BoardView({ projectId }: BoardViewProps) {
     return (
       <div className={styles.empty}>
         <p>Nenhuma coluna de Delivery configurada.</p>
-        <p className={styles.emptyHint}>Use o botão abaixo para adicionar colunas ao Board.</p>
+        <button
+          style={{ marginTop:12, fontSize:'.85rem', color:'var(--brand-500)', background:'none', border:'1px solid var(--brand-400)', borderRadius:'var(--radius-md)', padding:'6px 14px', cursor:'pointer', fontFamily:'var(--font-sans)', fontWeight:600 }}
+          onClick={() => setColsPanelOpen(true)}
+        >
+          + Criar colunas
+        </button>
+        <ColumnsPanel
+          open={colsPanelOpen}
+          onClose={() => setColsPanelOpen(false)}
+          projectId={projectId}
+          phase="delivery"
+        />
       </div>
     )
   }
@@ -173,23 +188,13 @@ export function BoardView({ projectId }: BoardViewProps) {
           {allCards.length} card{allCards.length !== 1 ? 's' : ''} · {columns.length} colunas
         </span>
         <div className={styles.toolbarRight}>
-          {!colForm ? (
-            <button className={styles.addColBtn} onClick={() => setColForm(true)}>
-              + Coluna
-            </button>
-          ) : (
-            <form className={styles.colForm} onSubmit={handleAddColumn}>
-              <input
-                className={styles.colInput}
-                value={newColName}
-                onChange={e => setNewColName(e.target.value)}
-                placeholder="Nome da coluna…"
-                autoFocus
-              />
-              <button type="submit" className={styles.colSubmit}>Criar</button>
-              <button type="button" className={styles.colCancel} onClick={() => setColForm(false)}>×</button>
-            </form>
-          )}
+          <button className={styles.addColBtn} onClick={() => setColsPanelOpen(true)} title="Gerenciar colunas">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{marginRight:4,verticalAlign:'middle'}}>
+              <path d="M7 9a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M11.7 7a4.8 4.8 0 00-.1-.8l1.2-.9-1.1-2-1.5.6a4.5 4.5 0 00-1.4-.8L8.6 2H5.4l-.3 1.1a4.5 4.5 0 00-1.4.8l-1.5-.6-1.1 2 1.2.9A4.8 4.8 0 002.3 7c0 .3 0 .5.1.8l-1.2.9 1.1 2 1.5-.6c.4.3.9.6 1.4.8L5.4 12h3.2l.3-1.1c.5-.2 1-.5 1.4-.8l1.5.6 1.1-2-1.2-.9c.1-.3.1-.5.1-.8z" stroke="currentColor" strokeWidth="1.2"/>
+            </svg>
+            Colunas
+          </button>
         </div>
       </div>
 
@@ -267,6 +272,14 @@ export function BoardView({ projectId }: BoardViewProps) {
           submitLabel="Criar card"
         />
       </SlidePanel>
+
+      {/* ── Columns panel ── */}
+      <ColumnsPanel
+        open={colsPanelOpen}
+        onClose={() => setColsPanelOpen(false)}
+        projectId={projectId}
+        phase="delivery"
+      />
 
       {/* ── RFC panel ── */}
       <SlidePanel
