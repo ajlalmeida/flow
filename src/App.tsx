@@ -10,11 +10,12 @@ import { BacklogView }   from '@/components/backlog/BacklogView'
 import { BoardView }     from '@/components/board/BoardView'
 import { GmudView }      from '@/components/gmud/GmudView'
 import { SettingsPanel }      from '@/components/settings/SettingsPanel'
+import { DashboardView }      from '@/components/dashboard/DashboardView'
 import { ExportImportPanel }  from '@/components/ui/ExportImportPanel'
 import type { Team, Project } from '@/lib/database.types'
 import styles from './App.module.css'
 
-type Tab = 'backlog' | 'board' | 'gmud'
+type Tab = 'backlog' | 'board' | 'gmud' | 'dashboard'
 
 export function App() {
   const { session, loading: authLoading, init, signOut } = useAuthStore()
@@ -96,13 +97,13 @@ export function App() {
         </div>
 
         <nav className={styles.tabs}>
-          {(['backlog', 'board', 'gmud'] as Tab[]).map(t => (
+          {(['backlog', 'board', 'gmud', 'dashboard'] as Tab[]).map(t => (
             <button
               key={t}
               className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
               onClick={() => setTab(t)}
             >
-              {t === 'backlog' ? 'Backlog' : t === 'board' ? 'Board' : 'GMud'}
+              {t === 'backlog' ? 'Backlog' : t === 'board' ? 'Board' : t === 'gmud' ? 'GMud' : 'Dashboard'}
             </button>
           ))}
         </nav>
@@ -140,7 +141,8 @@ export function App() {
           <>
             {tab === 'backlog' && <BacklogView projectId={activeProject.id} />}
             {tab === 'board'   && <BoardView   projectId={activeProject.id} />}
-            {tab === 'gmud'    && <GmudView    projectId={activeProject.id} />}
+            {tab === 'gmud'      && <GmudView      projectId={activeProject.id} />}
+            {tab === 'dashboard' && <DashboardView projectId={activeProject.id} />}
           </>
         )}
       </main>
