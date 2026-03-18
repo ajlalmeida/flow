@@ -15,8 +15,15 @@ if (!url || !key) {
 
 export const supabase = createClient(url, key, {
   auth: {
-    persistSession:      true,
-    autoRefreshToken:    true,
-    detectSessionInUrl:  true,
+    persistSession:     true,
+    autoRefreshToken:   true,
+    detectSessionInUrl: true,
+    storageKey:         'flow-auth',
+    flowType:           'pkce',
+  },
+  global: {
+    headers: {
+      'x-application-name': 'flow',
+    },
   },
 })
