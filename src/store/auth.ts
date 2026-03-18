@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────
 // Flow — Auth Store
 // ─────────────────────────────────────────────
+let _initialized = false
 import { create } from 'zustand'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
@@ -27,6 +28,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: true,
 
   async init() {
+    if (_initialized) return
+      _initialized = true  
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
       const profile = await fetchProfile(session.user.id)
