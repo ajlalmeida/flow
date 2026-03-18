@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useFlowStore, useProjectColumns } from '@/store'
 import type { Card } from '@/types'
 import { SlidePanel }   from '@/components/ui/SlidePanel'
+import { priorityScore } from '@/utils'
 import { BacklogCard }  from './BacklogCard'
 import { CardForm, type CardFormData } from './CardForm'
 import { PromoteModal }  from './PromoteModal'
@@ -31,14 +32,19 @@ export function BacklogView({ projectId }: BacklogViewProps) {
   const [search,     setSearch]     = useState('')
   const [activeTags, setActiveTags] = useState<string[]>([])
 
+  type SortKey = 'manual' | 'score_desc' | 'score_asc' | 'moscow' | 'risk_desc' | 'value_desc'
+  const [sortKey, setSortKey] = useState<SortKey>('manual')
+
   const allTags = useMemo(() => {
     const set = new Set<string>()
     cards.forEach(c => c.tags.forEach(t => set.add(t)))
     return [...set].sort()
   }, [cards])
 
+  const MOSCOW_ORDER: Record<string, number> = { M: 0, S: 1, C: 2, W: 3 }
+
   const filtered = useMemo(() => {
-    let result = cards
+    let result = [...cards]
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(c =>
@@ -49,8 +55,16 @@ export function BacklogView({ projectId }: BacklogViewProps) {
     if (activeTags.length > 0) {
       result = result.filter(c => activeTags.every(t => c.tags.includes(t)))
     }
+    switch (sortKey) {
+      case 'score_desc':  result.sort((a, b) => priorityScore(b.value, b.risk) - priorityScore(a.value, a.risk)); break
+      case 'score_asc':   result.sort((a, b) => priorityScore(a.value, a.risk) - priorityScore(b.value, b.risk)); break
+      case 'moscow':      result.sort((a, b) => (MOSCOW_ORDER[a.moscow] ?? 9) - (MOSCOW_ORDER[b.moscow] ?? 9)); break
+      case 'risk_desc':   result.sort((a, b) => b.risk  - a.risk);  break
+      case 'value_desc':  result.sort((a, b) => b.value - a.value); break
+      default: result.sort((a, b) => a.order - b.order); break // manual
+    }
     return result
-  }, [cards, search, activeTags])
+  }, [cards, search, activeTags, sortKey])
 
   function toggleTag(t: string) {
     setActiveTags(prev =>
@@ -167,6 +181,21 @@ export function BacklogView({ projectId }: BacklogViewProps) {
             Limpar filtros ×
           </button>
         )}
+        <div className={styles.sortGroup}>
+          <span className={styles.sortLabel}>Ordenar</span>
+          <select
+            className={styles.sortSelect}
+            value={sortKey}
+            onChange={e => setSortKey(e.target.value as SortKey)}
+          >
+            <option value="manual">Manual (criação)</option>
+            <option value="score_desc">↓ Score (Risk + Value)</option>
+            <option value="score_asc">↑ Score (Risk + Value)</option>
+            <option value="moscow">MoSCoW (M→W)</option>
+            <option value="risk_desc">↓ Risco</option>
+            <option value="value_desc">↓ Valor</option>
+          </select>
+        </div>
       </div>
 
       {/* ── Content ── */}
