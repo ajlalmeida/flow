@@ -148,18 +148,32 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   // ── Teams ──────────────────────────────────
 
   async createTeam(name) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
-    const { data, error } = await supabase
-      .from('teams')
-      .insert({ name, slug: slugify(name), created_by: user.id })
-      .select()
-      .single()
-    if (error || !data) return null
-    const team = data as Team
-    set(s => ({ teams: [...s.teams, team], activeTeamId: team.id }))
-    return team
-  },
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  
+  if (authError || !user) {
+    console.error('[createTeam] auth error:', authError)
+    return null
+  }
+
+  console.log('[createTeam] user.id:', user.id, 'name:', name)
+
+  const slug = slugify(name)
+  console.log('[createTeam] slug:', slug)
+
+  const { data, error } = await supabase
+    .from('teams')
+    .insert({ name, slug, created_by: user.id })
+    .select()
+    .single()
+
+  console.log('[createTeam] result data:', data)
+  console.log('[createTeam] result error:', JSON.stringify(error))
+
+  if (error || !data) return null
+  const team = data as Team
+  set(s => ({ teams: [...s.teams, team], activeTeamId: team.id }))
+  return team
+},
 
   async updateTeam(id, patch) {
     const { data } = await supabase
