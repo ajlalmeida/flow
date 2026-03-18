@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────
 // Flow — Teams & Projects Store (Supabase)
+// v2.1 — usa getSession() em vez de getUser()
 // ─────────────────────────────────────────────
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
@@ -8,44 +9,44 @@ import type {
   Invite, TeamRole, ProjectRole,
 } from '@/lib/database.types'
 
+// ── helper: retorna uid da sessão local ───────
+async function currentUid(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user?.id ?? null
+}
+
 interface OrgState {
-  teams:          Team[]
-  teamMembers:    TeamMember[]
-  projects:       Project[]
-  projectMembers: ProjectMember[]
-  activeTeamId:   string | null
+  teams:           Team[]
+  teamMembers:     TeamMember[]
+  projects:        Project[]
+  projectMembers:  ProjectMember[]
+  activeTeamId:    string | null
   activeProjectId: string | null
-  loading:        boolean
-  error:          string | null
+  loading:         boolean
+  error:           string | null
 }
 
 interface OrgActions {
-  // Bootstrap
-  loadUserData: () => Promise<void>
-  setActiveTeam:    (id: string) => void
-  setActiveProject: (id: string) => void
+  loadUserData:    () => Promise<void>
+  setActiveTeam:   (id: string) => void
+  setActiveProject:(id: string) => void
 
-  // Teams
   createTeam:  (name: string) => Promise<Team | null>
   updateTeam:  (id: string, patch: Partial<Pick<Team, 'name'>>) => Promise<void>
   deleteTeam:  (id: string) => Promise<void>
 
-  // Team members
   loadTeamMembers:   (teamId: string) => Promise<void>
   updateTeamMember:  (teamId: string, userId: string, role: TeamRole) => Promise<void>
   removeTeamMember:  (teamId: string, userId: string) => Promise<void>
 
-  // Projects
   createProject: (teamId: string, name: string, description?: string) => Promise<Project | null>
   updateProject: (id: string, patch: Partial<Pick<Project, 'name' | 'description'>>) => Promise<void>
   deleteProject: (id: string) => Promise<void>
 
-  // Project members
   loadProjectMembers:  (projectId: string) => Promise<void>
   updateProjectMember: (projectId: string, userId: string, role: ProjectRole) => Promise<void>
   removeProjectMember: (projectId: string, userId: string) => Promise<void>
 
-  // Invites
   sendInvite:   (params: SendInviteParams) => Promise<string | null>
   acceptInvite: (token: string) => Promise<string | null>
   listInvites:  (teamId?: string, projectId?: string) => Promise<Invite[]>
@@ -83,13 +84,15 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   async loadUserData() {
     set({ loading: true, error: null })
     try {
-      // Times do usuário via team_members
-      const { data: memberships, error: e1 } = await supabase
+      const uid = await currentUid()
+      if (!uid) { set({ loading: false }); return }
+
+      const { data: memberships } = await supabase
         .from('team_members')
         .select('team_id')
-      if (e1) throw e1
+        .eq('user_id', uid)
 
-      const teamIds = (memberships ?? []).map(m => m.team_id)
+      const teamIds = (memberships ?? []).map((m: any) => m.team_id)
 
       if (teamIds.length === 0) {
         set({ teams: [], projects: [], loading: false })
@@ -103,12 +106,12 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
         .order('created_at')
       if (e2) throw e2
 
-      // Projetos de todos os times do usuário
       const { data: projMemberships } = await supabase
         .from('project_members')
         .select('project_id')
+        .eq('user_id', uid)
 
-      const projectIds = (projMemberships ?? []).map(m => m.project_id)
+      const projectIds = (projMemberships ?? []).map((m: any) => m.project_id)
 
       let projects: Project[] = []
       if (projectIds.length > 0) {
@@ -121,14 +124,11 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
         projects = (data ?? []) as Project[]
       }
 
-      const firstTeam    = teams?.[0]?.id ?? null
-      const firstProject = projects?.[0]?.id ?? null
-
       set({
         teams:           (teams ?? []) as Team[],
         projects,
-        activeTeamId:    firstTeam,
-        activeProjectId: firstProject,
+        activeTeamId:    teams?.[0]?.id ?? null,
+        activeProjectId: projects?.[0]?.id ?? null,
         loading:         false,
       })
     } catch (err: unknown) {
@@ -138,7 +138,6 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
 
   setActiveTeam(id) {
     set({ activeTeamId: id })
-    // Filtra projetos do time selecionado automaticamente
     const projects = get().projects.filter(p => p.team_id === id)
     set({ activeProjectId: projects[0]?.id ?? null })
   },
@@ -148,37 +147,30 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   // ── Teams ──────────────────────────────────
 
   async createTeam(name) {
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  
-  if (authError || !user) {
-    console.error('[createTeam] auth error:', authError)
-    return null
-  }
+    const uid = await currentUid()
+    if (!uid) { console.error('[createTeam] sem sessão'); return null }
 
-  console.log('[createTeam] user.id:', user.id, 'name:', name)
+    const slug = slugify(name)
+    console.log('[createTeam] uid:', uid, 'name:', name, 'slug:', slug)
 
-  const slug = slugify(name)
-  console.log('[createTeam] slug:', slug)
+    const { data, error } = await supabase
+      .from('teams')
+      .insert({ name, slug, created_by: uid })
+      .select()
+      .single()
 
-  const { data, error } = await supabase
-    .from('teams')
-    .insert({ name, slug, created_by: user.id })
-    .select()
-    .single()
+    console.log('[createTeam] data:', data, 'error:', JSON.stringify(error))
+    if (error || !data) return null
 
-  console.log('[createTeam] result data:', data)
-  console.log('[createTeam] result error:', JSON.stringify(error))
-
-  if (error || !data) return null
-  const team = data as Team
-  set(s => ({ teams: [...s.teams, team], activeTeamId: team.id }))
-  return team
-},
+    const team = data as Team
+    set(s => ({ teams: [...s.teams, team], activeTeamId: team.id }))
+    return team
+  },
 
   async updateTeam(id, patch) {
     const { data } = await supabase
       .from('teams')
-      .update({ ...patch, updated_at: new Date().toISOString() })
+      .update({ ...patch, updated_at: new Date().toISOString() } as Record<string,unknown>)
       .eq('id', id)
       .select()
       .single()
@@ -190,7 +182,9 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
     set(s => ({
       teams:    s.teams.filter(t => t.id !== id),
       projects: s.projects.filter(p => p.team_id !== id),
-      activeTeamId: s.activeTeamId === id ? (s.teams.find(t => t.id !== id)?.id ?? null) : s.activeTeamId,
+      activeTeamId: s.activeTeamId === id
+        ? (s.teams.find(t => t.id !== id)?.id ?? null)
+        : s.activeTeamId,
     }))
   },
 
@@ -207,7 +201,7 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   async updateTeamMember(teamId, userId, role) {
     await supabase
       .from('team_members')
-      .update({ role })
+      .update({ role } as Record<string,unknown>)
       .eq('team_id', teamId)
       .eq('user_id', userId)
     set(s => ({
@@ -233,14 +227,20 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   // ── Projects ───────────────────────────────
 
   async createProject(teamId, name, description = '') {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+    const uid = await currentUid()
+    if (!uid) { console.error('[createProject] sem sessão'); return null }
+
+    console.log('[createProject] uid:', uid, 'teamId:', teamId, 'name:', name)
+
     const { data, error } = await supabase
       .from('projects')
-      .insert({ team_id: teamId, name, description, created_by: user.id })
+      .insert({ team_id: teamId, name, description, created_by: uid })
       .select()
       .single()
+
+    console.log('[createProject] data:', data, 'error:', JSON.stringify(error))
     if (error || !data) return null
+
     const project = data as Project
     set(s => ({ projects: [...s.projects, project], activeProjectId: project.id }))
     return project
@@ -249,7 +249,7 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   async updateProject(id, patch) {
     const { data } = await supabase
       .from('projects')
-      .update({ ...patch, updated_at: new Date().toISOString() })
+      .update({ ...patch, updated_at: new Date().toISOString() } as Record<string,unknown>)
       .eq('id', id)
       .select()
       .single()
@@ -281,7 +281,7 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   async updateProjectMember(projectId, userId, role) {
     await supabase
       .from('project_members')
-      .update({ role })
+      .update({ role } as Record<string,unknown>)
       .eq('project_id', projectId)
       .eq('user_id', userId)
     set(s => ({
@@ -307,8 +307,8 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   // ── Invites ────────────────────────────────
 
   async sendInvite({ email, role, teamId, projectId }) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return 'Não autenticado'
+    const uid = await currentUid()
+    if (!uid) return 'Não autenticado'
 
     const { data, error } = await supabase
       .from('invites')
@@ -317,25 +317,20 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
         role,
         team_id:    teamId    ?? null,
         project_id: projectId ?? null,
-        invited_by: user.id,
-      })
+        invited_by: uid,
+      } as Record<string,unknown>)
       .select()
       .single()
 
     if (error) return error.message
-
-    // Em produção: envie e-mail com link de convite
-    // O token está em data.token — construa a URL:
-    // https://<seu-domínio>/invite?token=<token>
     console.info('[Flow] Convite criado. Token:', (data as Invite).token)
     return null
   },
 
   async acceptInvite(token) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return 'Não autenticado'
+    const uid = await currentUid()
+    if (!uid) return 'Não autenticado'
 
-    // Busca convite válido
     const { data: invite, error: e1 } = await supabase
       .from('invites')
       .select('*')
@@ -348,28 +343,25 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
 
     const inv = invite as Invite
 
-    // Adiciona ao time ou projeto
     if (inv.team_id) {
       await supabase.from('team_members').insert({
         team_id: inv.team_id,
-        user_id: user.id,
+        user_id: uid,
         role: inv.role as TeamRole,
-      })
+      } as Record<string,unknown>)
     } else if (inv.project_id) {
       await supabase.from('project_members').insert({
         project_id: inv.project_id,
-        user_id: user.id,
+        user_id: uid,
         role: inv.role as ProjectRole,
-      })
+      } as Record<string,unknown>)
     }
 
-    // Marca convite como aceito
     await supabase
       .from('invites')
-      .update({ status: 'accepted' })
+      .update({ status: 'accepted' } as Record<string,unknown>)
       .eq('id', inv.id)
 
-    // Recarrega dados
     await get().loadUserData()
     return null
   },
@@ -383,7 +375,10 @@ export const useOrgStore = create<OrgState & OrgActions>((set, get) => ({
   },
 
   async revokeInvite(id) {
-    await supabase.from('invites').update({ status: 'declined' }).eq('id', id)
+    await supabase
+      .from('invites')
+      .update({ status: 'declined' } as Record<string,unknown>)
+      .eq('id', id)
   },
 }))
 
